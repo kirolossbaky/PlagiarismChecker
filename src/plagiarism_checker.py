@@ -10,6 +10,20 @@ from bs4 import BeautifulSoup
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
+import logging
+
+# Configure logging
+log_dir = os.path.join(os.path.dirname(__file__), '..', 'logs')
+os.makedirs(log_dir, exist_ok=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(os.path.join(log_dir, 'plagiarism_checker.log')),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 # Additional imports for file handling
 import PyPDF2
@@ -178,16 +192,24 @@ def check_plagiarism(doc1_path, doc2_path, threshold=0.7):
     Returns:
         dict: Plagiarism detection results
     """
+    logger.info(f"Starting plagiarism check for {doc1_path} and {doc2_path}")
+    
     # Extract text from files
     text1 = extract_text_from_file(doc1_path)
     text2 = extract_text_from_file(doc2_path)
+    
+    logger.info(f"Extracted text from {doc1_path} and {doc2_path}")
     
     # Preprocess texts
     processed_text1 = preprocess_text(text1)
     processed_text2 = preprocess_text(text2)
     
+    logger.info(f"Preprocessed text for {doc1_path} and {doc2_path}")
+    
     # Calculate similarities
     similarities = calculate_similarities(processed_text1, processed_text2)
+    
+    logger.info(f"Calculated similarities for {doc1_path} and {doc2_path}")
     
     # Combine similarities (weighted average)
     combined_similarity = (
@@ -197,8 +219,12 @@ def check_plagiarism(doc1_path, doc2_path, threshold=0.7):
         0.2 * similarities['levenshtein_similarity']
     )
     
+    logger.info(f"Combined similarities for {doc1_path} and {doc2_path}")
+    
     # Determine plagiarism
     is_plagiarized = combined_similarity > threshold
+    
+    logger.info(f"Plagiarism detected: {is_plagiarized}")
     
     return {
         **similarities,
@@ -210,4 +236,5 @@ def check_plagiarism(doc1_path, doc2_path, threshold=0.7):
 if __name__ == '__main__':
     # Example usage
     result = check_plagiarism('sample1.txt', 'sample2.txt')
+    logger.info(f"Plagiarism check result: {result}")
     print(result)

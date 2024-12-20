@@ -8,7 +8,8 @@ from src.plagiarism_checker import (
     preprocess_text, 
     detect_encoding, 
     clean_text, 
-    calculate_similarities
+    calculate_similarities,
+    extract_text_from_file
 )
 
 class TestPlagiarismChecker(unittest.TestCase):
@@ -93,6 +94,15 @@ class TestPlagiarismChecker(unittest.TestCase):
         # Ensure threshold affects plagiarism detection
         self.assertTrue(low_threshold_result['is_plagiarized'])
         self.assertFalse(high_threshold_result['is_plagiarized'])
+
+    def test_extract_text_from_file(self):
+        text = extract_text_from_file('test_doc1.txt')
+        self.assertIsInstance(text, str)
+        self.assertTrue(len(text) > 0)
+
+    def test_unsupported_file_type(self):
+        with self.assertRaises(ValueError):
+            extract_text_from_file('test_doc1.xyz')
 
 if __name__ == '__main__':
     unittest.main()
